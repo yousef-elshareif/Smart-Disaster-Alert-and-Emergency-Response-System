@@ -10,4 +10,6 @@ public class AppDBContext : DbContext
         
     }
     public DbSet<User> Users { get; set; }
+    public DbSet<webUser> WebUsers { get; set; }
+    public DbSet<operationCenter> OperationCenter { get; set; }
 }

@@ -44,6 +44,68 @@ namespace infraStructure.Migrations
 
                     b.ToTable("Users");
                 });
+
+            modelBuilder.Entity("Models.operationCenter", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("OperationCenter");
+                });
+
+            modelBuilder.Entity("Models.webUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PassWord")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("operationCenterId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("operationCenterId");
+
+                    b.ToTable("WebUsers");
+                });
+
+            modelBuilder.Entity("Models.webUser", b =>
+                {
+                    b.HasOne("Models.operationCenter", "operationCenter")
+                        .WithMany("webUsers")
+                        .HasForeignKey("operationCenterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("operationCenter");
+                });
+
+            modelBuilder.Entity("Models.operationCenter", b =>
+                {
+                    b.Navigation("webUsers");
+                });
 #pragma warning restore 612, 618
         }
     }

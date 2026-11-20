@@ -2,4 +2,5 @@
   <Project Path="API/API.csproj" />
   <Project Path="infraStructure/infraStructure.csproj" />
   <Project Path="Models/Models.csproj" />
+  <Project Path="Services/Services.csproj" Id="d2cd2c72-c2eb-4f08-a53e-e133220a756a" />
 </Solution>

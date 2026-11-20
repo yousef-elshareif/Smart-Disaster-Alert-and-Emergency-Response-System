@@ -1,5 +1,6 @@
 using infraStructure;
 using Microsoft.EntityFrameworkCore;
+using Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,10 @@ op.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")))
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<userService>();
+builder.Services.
+
+
 
 var app = builder.Build();
 

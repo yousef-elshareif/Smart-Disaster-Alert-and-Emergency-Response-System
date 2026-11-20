@@ -12,7 +12,7 @@ namespace Models
        public int Id { get; set; }
         public string Name { get; set; }
         public string PassWord { get; set; }
-        public bool isAdmin { get; set; }
+        public bool isAdmin { get; set; } = false;
         [ForeignKey("operationCenter")]
         public int operationCenterId { get; set; }
         public operationCenter operationCenter { get; set; }

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Smart Alert & Flooding Emergency System</title>
+    <script>var LANG = localStorage.lang || 'en'; document.documentElement.lang = LANG; document.documentElement.dir = LANG == 'ar' ? 'rtl' : 'ltr'; document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap' + (LANG == 'ar' ? '.rtl' : '') + '.min.css">')</script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/main.css">
+    <script>tailwind = { config: { prefix: 'tw-', corePlugins: { preflight: false } } }</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <aside id="side">
+        <div class="brand"><i class="bi bi-shield-exclamation"></i><span class="lbl"><span data-ar="التنبيه الذكي">Smart
+                    Alert</span><small><span data-ar="نظام طوارئ الفيضانات">Flood Emergency System</span></small></span>
+        </div><a href="dashboard.html" class="nv"><i class="bi bi-speedometer2"></i><span class="lbl"><span
+                    data-ar="لوحة التحكم">Dashboard</span></span></a><a href="flood-monitoring.html" class="nv"><i
+                class="bi bi-droplet-half"></i><span class="lbl"><span data-ar="مراقبة الفيضانات">Flood
+                    Monitoring</span></span></a><a href="map.html" class="nv"><i class="bi bi-geo-alt"></i><span
+                class="lbl"><span data-ar="الخريطة الجغرافية">Geographic Map</span></span></a><a href="alerts.html"
+            class="nv"><i class="bi bi-exclamation-triangle"></i><span class="lbl"><span
+                    data-ar="إدارة التحذيرات">Alerts Management</span></span></a><a href="create-alert.html"
+            class="nv"><i class="bi bi-plus-circle"></i><span class="lbl"><span data-ar="إنشاء تحذير">Create
+                    Alert</span></span></a><a href="reports.html" class="nv"><i class="bi bi-megaphone"></i><span
+                class="lbl"><span data-ar="بلاغات الطوارئ">Emergency Reports</span></span></a><a
+            href="emergency-response.html" class="nv"><i class="bi bi-people"></i><span class="lbl"><span
+                    data-ar="إدارة الاستجابة">Emergency Response</span></span></a><a href="notifications.html"
+            class="nv"><i class="bi bi-bell"></i><span class="lbl"><span
+                    data-ar="سجل الإشعارات">Notifications</span></span></a><a href="users.html" class="nv on"><i
+                class="bi bi-person-gear"></i><span class="lbl"><span data-ar="إدارة المستخدمين">Users
+                    Management</span></span></a><a href="data-sources.html" class="nv"><i class="bi bi-plug"></i><span
+                class="lbl"><span data-ar="مصادر البيانات">Data Sources</span></span></a><a href="settings.html"
+            class="nv"><i class="bi bi-gear"></i><span class="lbl"><span
+                    data-ar="إعدادات النظام">Settings</span></span></a>
+    </aside>
+    <div id="shade"></div>
+    <div id="wrap">
+        <header id="top"><button class="btn btn-light" id="btnSide"><i class="bi bi-list"></i></button>
+            <div class="me-auto">
+                <h5><span data-ar="إدارة المستخدمين">Users Management</span></h5>
+                <div class="crumb"><span data-ar="الرئيسية">Home</span> / <span data-ar="إدارة المستخدمين">Users
+                        Management</span></div>
+            </div>
+            <input id="gs" class="form-control form-control-sm d-none d-md-block" style="width:170px"
+                placeholder="Search page..." data-ar-ph="بحث في الصفحة..."><span class="sys d-none d-xl-flex"><span
+                    data-ar="النظام يعمل">System operational</span></span><small id="clk"
+                class="text-muted d-none d-lg-block"></small>
+            <div class="tw-flex tw-items-center tw-gap-2"><button class="btn btn-sm btn-outline-primary"
+                    id="btnLang">English | العربية</button>
+                <div class="dropdown"><button class="btn btn-light position-relative" data-bs-toggle="dropdown"><i
+                            class="bi bi-bell"></i><span id="bellCount"
+                            class="badge bg-danger position-absolute top-0 start-100 translate-middle d-none"></span></button>
+                    <div class="dropdown-menu dropdown-menu-end p-2" style="min-width:260px">
+                        <div id="bellList"></div><a class="dropdown-item small" href="#" id="btnReadAll"><span
+                                data-ar="تعيين الكل كمقروء">Mark all as read</span></a>
+                    </div>
+                </div>
+                <div class="dropdown"><button class="btn btn-light" data-bs-toggle="dropdown"><i
+                            class="bi bi-person-circle"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header" id="meName"></li>
+                        <li><a class="dropdown-item" href="settings.html"><span data-ar="الإعدادات">Settings</span></a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="btnLogout"><span data-ar="تسجيل الخروج">Sign
+                                    out</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <main id="view">
+            <div id="apiErr" class="alert alert-danger"><i class="bi bi-plug"></i> <span
+                    data-ar="تعذر الاتصال بالـ API على">Cannot reach the API at</span> <code id="apiUrl"></code></div>
+            <div class="card pn">
+                <div class="tb">
+                    <h6><span data-ar="المستخدمون">Users</span></h6><input id="us_search"
+                        class="form-control form-control-sm" placeholder="Search..." data-ar-ph="بحث..."><button
+                        id="btnAddUser" class="btn btn-sm btn-danger"><i class="bi bi-plus"></i> <span
+                            data-ar="إضافة مستخدم">Add user</span></button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover">
+                        <thead id="us_head">
+                            <tr>
+                                <th data-sort="code"><span data-ar="المعرّف">ID</span></th>
+                                <th data-sort="full_name"><span data-ar="الاسم">Name</span></th>
+                                <th data-sort="email"><span data-ar="البريد">Email</span></th>
+                                <th data-sort="phone"><span data-ar="الهاتف">Phone</span></th>
+                                <th data-sort="role_name"><span data-ar="الدور">Role</span></th>
+                                <th data-sort="status"><span data-ar="الحالة">Status</span></th>
+                                <th data-sort="created_at"><span data-ar="التسجيل">Registered</span></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="us_body"></tbody>
+                    </table>
+                </div>
+                <div id="us_empty" class="text-center text-muted py-4" hidden><span data-ar="لا توجد سجلات">No records
+                        found</span></div>
+                <div class="pg" id="us_pager"><small><span id="us_count"></span> <span
+                            data-ar="سجل">records</span></small>
+                    <div><button id="us_prev" class="btn btn-sm btn-outline-secondary">‹</button> <span id="us_page"
+                            class="mx-2"></span><button id="us_next" class="btn btn-sm btn-outline-secondary">›</button>
+                    </div>
+                </div><template id="us_row">
+                    <tr>
+                        <td><span data-f="code"></span></td>
+                        <td><span data-f="full_name"></span></td>
+                        <td><span data-f="email"></span></td>
+                        <td><span data-f="phone"></span></td>
+                        <td><span data-f="role_name"></span></td>
+                        <td><span class="bdg" data-f="status" data-fmt="badge"></span></td>
+                        <td><span data-f="created_at" data-fmt="date"></span></td>
+                        <td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" data-a="edit"
+                                title="Edit" data-ar-title="تعديل"><i class="bi bi-pencil"></i></button> <button
+                                class="btn btn-sm btn-outline-danger" data-a="toggle" title="Enable / disable"
+                                data-ar-title="تفعيل / تعطيل"><i class="bi bi-power"></i></button> </td>
+                    </tr>
+                </template>
+            </div>
+            <div class="card pn mt-3">
+                <div class="tb">
+                    <h6><span data-ar="صلاحيات الأدوار">Role permissions</span></h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table text-center">
+                        <thead>
+                            <tr id="permHead">
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="permBody"></tbody>
+                    </table>
+                </div>
+            </div><template id="tplRoleTh">
+                <th data-f="name"></th>
+            </template><template id="tplPermRow">
+                <tr>
+                    <td class="text-start" data-f="name"></td>
+                </tr>
+            </template><template id="tplYes">
+                <td><i class="bi bi-check-circle-fill text-success"></i></td>
+            </template><template id="tplNo">
+                <td><i class="bi bi-dash text-muted"></i></td>
+            </template>
+            <div class="modal fade" id="userModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <form class="modal-content" id="userForm" novalidate>
+                        <div class="modal-header">
+                            <h5 class="modal-title"><span data-ar="المستخدم">User</span></h5><button type="button"
+                                class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3"><label class="form-label"><span data-ar="الاسم الكامل">Full
+                                        name</span></label><input id="user_full_name" name="full_name" type="text"
+                                    class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label"><span
+                                        data-ar="البريد">Email</span></label><input id="user_email" name="email"
+                                    type="email" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label"><span
+                                        data-ar="الهاتف">Phone</span></label><input id="user_phone" name="phone"
+                                    type="text" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label"><span data-ar="الدور">Role</span></label><select
+                                    id="user_role_id" name="role_id" class="form-select" required>
+                                    <option value="">—</option>
+                                </select></div>
+                        </div>
+                        <div class="modal-footer"><button class="btn btn-danger" type="submit"><span
+                                    data-ar="حفظ">Save</span></button><button type="button" class="btn btn-light"
+                                data-bs-dismiss="modal"><span data-ar="إغلاق">Close</span></button></div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <template id="tplBell">
+        <div class="small p-1 border-bottom" data-f="title"></div>
+    </template>
+    <div id="toast" class="toastx" hidden></div>
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span data-ar="تأكيد الإجراء">Confirm action</span></h5><button
+                        class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmMsg"></div>
+                <div class="modal-footer"><button class="btn btn-danger" id="confirmOk"><span
+                            data-ar="تأكيد">Confirm</span></button><button class="btn btn-light"
+                        data-bs-dismiss="modal"><span data-ar="إلغاء">Cancel</span></button></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/users.js"></script>
+</body>
+
+</html>

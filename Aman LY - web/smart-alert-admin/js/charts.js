@@ -1,0 +1,3 @@
+const lab = l => /^\d{4}-\d\d-\d\d/.test(l) ? (l.length > 10 ? l.slice(11, 16) : new Date(l).toLocaleDateString(LANG == 'ar' ? 'ar-LY' : 'en-GB', { day: 'numeric', month: 'short' })) : l;
+const lineChart = (id, d) => new Chart($(id), { type: 'line', data: { labels: d.labels.map(lab), datasets: d.datasets.map((s, i) => ({ label: nm(s, 'label'), data: s.data, borderColor: COL[i % 4], tension: .35 })) }, options: { maintainAspectRatio: false } });
+const doughnutChart = (id, d) => new Chart($(id), { type: 'doughnut', data: { labels: d.labels.map(lbl), datasets: [{ data: d.datasets[0].data, backgroundColor: d.labels.map(l => LC[l]) }] }, options: { maintainAspectRatio: false } });

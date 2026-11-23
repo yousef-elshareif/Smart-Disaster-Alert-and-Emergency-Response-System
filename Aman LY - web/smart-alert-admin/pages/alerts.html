@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Smart Alert & Flooding Emergency System</title>
+    <script>var LANG = localStorage.lang || 'en'; document.documentElement.lang = LANG; document.documentElement.dir = LANG == 'ar' ? 'rtl' : 'ltr'; document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap' + (LANG == 'ar' ? '.rtl' : '') + '.min.css">')</script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/main.css">
+    <script>tailwind = { config: { prefix: 'tw-', corePlugins: { preflight: false } } }</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <aside id="side">
+        <div class="brand"><i class="bi bi-shield-exclamation"></i><span class="lbl"><span data-ar="التنبيه الذكي">Smart
+                    Alert</span><small><span data-ar="نظام طوارئ الفيضانات">Flood Emergency System</span></small></span>
+        </div><a href="dashboard.html" class="nv"><i class="bi bi-speedometer2"></i><span class="lbl"><span
+                    data-ar="لوحة التحكم">Dashboard</span></span></a><a href="flood-monitoring.html" class="nv"><i
+                class="bi bi-droplet-half"></i><span class="lbl"><span data-ar="مراقبة الفيضانات">Flood
+                    Monitoring</span></span></a><a href="map.html" class="nv"><i class="bi bi-geo-alt"></i><span
+                class="lbl"><span data-ar="الخريطة الجغرافية">Geographic Map</span></span></a><a href="alerts.html"
+            class="nv on"><i class="bi bi-exclamation-triangle"></i><span class="lbl"><span
+                    data-ar="إدارة التحذيرات">Alerts Management</span></span></a><a href="create-alert.html"
+            class="nv"><i class="bi bi-plus-circle"></i><span class="lbl"><span data-ar="إنشاء تحذير">Create
+                    Alert</span></span></a><a href="reports.html" class="nv"><i class="bi bi-megaphone"></i><span
+                class="lbl"><span data-ar="بلاغات الطوارئ">Emergency Reports</span></span></a><a
+            href="emergency-response.html" class="nv"><i class="bi bi-people"></i><span class="lbl"><span
+                    data-ar="إدارة الاستجابة">Emergency Response</span></span></a><a href="notifications.html"
+            class="nv"><i class="bi bi-bell"></i><span class="lbl"><span
+                    data-ar="سجل الإشعارات">Notifications</span></span></a><a href="users.html" class="nv"><i
+                class="bi bi-person-gear"></i><span class="lbl"><span data-ar="إدارة المستخدمين">Users
+                    Management</span></span></a><a href="data-sources.html" class="nv"><i class="bi bi-plug"></i><span
+                class="lbl"><span data-ar="مصادر البيانات">Data Sources</span></span></a><a href="settings.html"
+            class="nv"><i class="bi bi-gear"></i><span class="lbl"><span
+                    data-ar="إعدادات النظام">Settings</span></span></a>
+    </aside>
+    <div id="shade"></div>
+    <div id="wrap">
+        <header id="top"><button class="btn btn-light" id="btnSide"><i class="bi bi-list"></i></button>
+            <div class="me-auto">
+                <h5><span data-ar="إدارة التحذيرات">Alerts Management</span></h5>
+                <div class="crumb"><span data-ar="الرئيسية">Home</span> / <span data-ar="إدارة التحذيرات">Alerts
+                        Management</span></div>
+            </div>
+            <input id="gs" class="form-control form-control-sm d-none d-md-block" style="width:170px"
+                placeholder="Search page..." data-ar-ph="بحث في الصفحة..."><span class="sys d-none d-xl-flex"><span
+                    data-ar="النظام يعمل">System operational</span></span><small id="clk"
+                class="text-muted d-none d-lg-block"></small>
+            <div class="tw-flex tw-items-center tw-gap-2"><button class="btn btn-sm btn-outline-primary"
+                    id="btnLang">English | العربية</button>
+                <div class="dropdown"><button class="btn btn-light position-relative" data-bs-toggle="dropdown"><i
+                            class="bi bi-bell"></i><span id="bellCount"
+                            class="badge bg-danger position-absolute top-0 start-100 translate-middle d-none"></span></button>
+                    <div class="dropdown-menu dropdown-menu-end p-2" style="min-width:260px">
+                        <div id="bellList"></div><a class="dropdown-item small" href="#" id="btnReadAll"><span
+                                data-ar="تعيين الكل كمقروء">Mark all as read</span></a>
+                    </div>
+                </div>
+                <div class="dropdown"><button class="btn btn-light" data-bs-toggle="dropdown"><i
+                            class="bi bi-person-circle"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header" id="meName"></li>
+                        <li><a class="dropdown-item" href="settings.html"><span data-ar="الإعدادات">Settings</span></a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="btnLogout"><span data-ar="تسجيل الخروج">Sign
+                                    out</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <main id="view">
+            <div id="apiErr" class="alert alert-danger"><i class="bi bi-plug"></i> <span
+                    data-ar="تعذر الاتصال بالـ API على">Cannot reach the API at</span> <code id="apiUrl"></code></div>
+            <div class="card pn">
+                <div class="tb">
+                    <h6><span data-ar="كل التحذيرات">All alerts</span></h6><input id="al_search"
+                        class="form-control form-control-sm" placeholder="Search..." data-ar-ph="بحث..."><select
+                        id="al_status" class="form-select form-select-sm">
+                        <option value="" data-ar="الكل">All</option>
+                        <option value="active" data-ar="نشط">Active</option>
+                        <option value="draft" data-ar="مسودة">Draft</option>
+                        <option value="expired" data-ar="منتهي">Expired</option>
+                        <option value="cancelled" data-ar="ملغي">Cancelled</option>
+                    </select><a class="btn btn-sm btn-danger" href="create-alert.html"><i class="bi bi-plus"></i> <span
+                            data-ar="تحذير جديد">New alert</span></a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover">
+                        <thead id="al_head">
+                            <tr>
+                                <th data-sort="code"><span data-ar="المعرّف">ID</span></th>
+                                <th data-sort="title"><span data-ar="العنوان">Title</span></th>
+                                <th data-sort="alert_type"><span data-ar="النوع">Type</span></th>
+                                <th data-sort="severity"><span data-ar="الخطورة">Severity</span></th>
+                                <th data-sort="area_name"><span data-ar="المنطقة">Target Area</span></th>
+                                <th data-sort="created_at"><span data-ar="تاريخ الإنشاء">Created</span></th>
+                                <th data-sort="expires_at"><span data-ar="ينتهي">Expires</span></th>
+                                <th data-sort="status"><span data-ar="الحالة">Status</span></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="al_body"></tbody>
+                    </table>
+                </div>
+                <div id="al_empty" class="text-center text-muted py-4" hidden><span data-ar="لا توجد سجلات">No records
+                        found</span></div>
+                <div class="pg" id="al_pager"><small><span id="al_count"></span> <span
+                            data-ar="سجل">records</span></small>
+                    <div><button id="al_prev" class="btn btn-sm btn-outline-secondary">‹</button> <span id="al_page"
+                            class="mx-2"></span><button id="al_next" class="btn btn-sm btn-outline-secondary">›</button>
+                    </div>
+                </div><template id="al_row">
+                    <tr>
+                        <td><span data-f="code"></span></td>
+                        <td><span data-f="title"></span></td>
+                        <td><span data-f="alert_type" data-fmt="label"></span></td>
+                        <td><span class="bdg" data-f="severity" data-fmt="badge"></span></td>
+                        <td><span data-f="area_name"></span></td>
+                        <td><span data-f="created_at" data-fmt="date"></span></td>
+                        <td><span data-f="expires_at" data-fmt="date"></span></td>
+                        <td><span class="bdg" data-f="status" data-fmt="badge"></span></td>
+                        <td class="text-nowrap"><button class="btn btn-sm btn-outline-secondary" data-a="view"
+                                title="View" data-ar-title="عرض"><i class="bi bi-eye"></i></button> <button
+                                class="btn btn-sm btn-outline-primary" data-a="edit" title="Edit"
+                                data-ar-title="تعديل"><i class="bi bi-pencil"></i></button> <button
+                                class="btn btn-sm btn-outline-success" data-a="publish" title="Publish"
+                                data-ar-title="نشر"><i class="bi bi-send"></i></button> <button
+                                class="btn btn-sm btn-outline-danger" data-a="cancel" title="Cancel alert"
+                                data-ar-title="إلغاء التحذير"><i class="bi bi-x-circle"></i></button> <button
+                                class="btn btn-sm btn-outline-danger" data-a="delete" title="Delete draft"
+                                data-ar-title="حذف المسودة"><i class="bi bi-trash"></i></button> </td>
+                    </tr>
+                </template>
+            </div>
+            <div class="modal fade" id="alertEditModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <form class="modal-content" id="alertEditForm" novalidate>
+                        <div class="modal-header">
+                            <h5 class="modal-title"><span data-ar="تعديل التحذير">Edit alert</span></h5><button
+                                type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3"><label class="form-label"><span
+                                        data-ar="العنوان">Title</span></label><input id="ae_title" name="title"
+                                    type="text" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label"><span
+                                        data-ar="ينتهي">Expires</span></label><input id="ae_expires_at"
+                                    name="expires_at" type="datetime-local" class="form-control" required></div>
+                        </div>
+                        <div class="modal-footer"><button class="btn btn-danger" type="submit"><span
+                                    data-ar="حفظ">Save</span></button><button type="button" class="btn btn-light"
+                                data-bs-dismiss="modal"><span data-ar="إغلاق">Close</span></button></div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal fade" id="viewModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="v_title"></h5><button class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <dl class="row">
+                                <dt class="col-4"><span data-ar="المعرّف">ID</span></dt>
+                                <dd class="col-8"><span id="v_code"></span></dd>
+                                <dt class="col-4"><span data-ar="النوع">Type</span></dt>
+                                <dd class="col-8"><span id="v_alert_type" data-fmt="label"></span></dd>
+                                <dt class="col-4"><span data-ar="الخطورة">Severity</span></dt>
+                                <dd class="col-8"><span id="v_severity" class="bdg" data-fmt="badge"></span></dd>
+                                <dt class="col-4"><span data-ar="المنطقة">Target Area</span></dt>
+                                <dd class="col-8"><span id="v_area_name"></span></dd>
+                                <dt class="col-4"><span data-ar="تاريخ الإنشاء">Created</span></dt>
+                                <dd class="col-8"><span id="v_created_at" data-fmt="date"></span></dd>
+                                <dt class="col-4"><span data-ar="ينتهي">Expires</span></dt>
+                                <dd class="col-8"><span id="v_expires_at" data-fmt="date"></span></dd>
+                                <dt class="col-4"><span data-ar="الحالة">Status</span></dt>
+                                <dd class="col-8"><span id="v_status" class="bdg" data-fmt="badge"></span></dd>
+                            </dl>
+                            <p id="v_description"></p>
+                            <p class="text-muted" id="v_recommendations"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <template id="tplBell">
+        <div class="small p-1 border-bottom" data-f="title"></div>
+    </template>
+    <div id="toast" class="toastx" hidden></div>
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span data-ar="تأكيد الإجراء">Confirm action</span></h5><button
+                        class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmMsg"></div>
+                <div class="modal-footer"><button class="btn btn-danger" id="confirmOk"><span
+                            data-ar="تأكيد">Confirm</span></button><button class="btn btn-light"
+                        data-bs-dismiss="modal"><span data-ar="إلغاء">Cancel</span></button></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/alerts.js"></script>
+</body>
+
+</html>

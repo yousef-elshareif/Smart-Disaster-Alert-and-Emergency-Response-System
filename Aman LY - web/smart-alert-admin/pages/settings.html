@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Smart Alert & Flooding Emergency System</title>
+    <script>var LANG = localStorage.lang || 'en'; document.documentElement.lang = LANG; document.documentElement.dir = LANG == 'ar' ? 'rtl' : 'ltr'; document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap' + (LANG == 'ar' ? '.rtl' : '') + '.min.css">')</script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/main.css">
+    <script>tailwind = { config: { prefix: 'tw-', corePlugins: { preflight: false } } }</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <aside id="side">
+        <div class="brand"><i class="bi bi-shield-exclamation"></i><span class="lbl"><span data-ar="التنبيه الذكي">Smart
+                    Alert</span><small><span data-ar="نظام طوارئ الفيضانات">Flood Emergency System</span></small></span>
+        </div><a href="dashboard.html" class="nv"><i class="bi bi-speedometer2"></i><span class="lbl"><span
+                    data-ar="لوحة التحكم">Dashboard</span></span></a><a href="flood-monitoring.html" class="nv"><i
+                class="bi bi-droplet-half"></i><span class="lbl"><span data-ar="مراقبة الفيضانات">Flood
+                    Monitoring</span></span></a><a href="map.html" class="nv"><i class="bi bi-geo-alt"></i><span
+                class="lbl"><span data-ar="الخريطة الجغرافية">Geographic Map</span></span></a><a href="alerts.html"
+            class="nv"><i class="bi bi-exclamation-triangle"></i><span class="lbl"><span
+                    data-ar="إدارة التحذيرات">Alerts Management</span></span></a><a href="create-alert.html"
+            class="nv"><i class="bi bi-plus-circle"></i><span class="lbl"><span data-ar="إنشاء تحذير">Create
+                    Alert</span></span></a><a href="reports.html" class="nv"><i class="bi bi-megaphone"></i><span
+                class="lbl"><span data-ar="بلاغات الطوارئ">Emergency Reports</span></span></a><a
+            href="emergency-response.html" class="nv"><i class="bi bi-people"></i><span class="lbl"><span
+                    data-ar="إدارة الاستجابة">Emergency Response</span></span></a><a href="notifications.html"
+            class="nv"><i class="bi bi-bell"></i><span class="lbl"><span
+                    data-ar="سجل الإشعارات">Notifications</span></span></a><a href="users.html" class="nv"><i
+                class="bi bi-person-gear"></i><span class="lbl"><span data-ar="إدارة المستخدمين">Users
+                    Management</span></span></a><a href="data-sources.html" class="nv"><i class="bi bi-plug"></i><span
+                class="lbl"><span data-ar="مصادر البيانات">Data Sources</span></span></a><a href="settings.html"
+            class="nv on"><i class="bi bi-gear"></i><span class="lbl"><span
+                    data-ar="إعدادات النظام">Settings</span></span></a>
+    </aside>
+    <div id="shade"></div>
+    <div id="wrap">
+        <header id="top"><button class="btn btn-light" id="btnSide"><i class="bi bi-list"></i></button>
+            <div class="me-auto">
+                <h5><span data-ar="إعدادات النظام">Settings</span></h5>
+                <div class="crumb"><span data-ar="الرئيسية">Home</span> / <span data-ar="إعدادات النظام">Settings</span>
+                </div>
+            </div>
+            <input id="gs" class="form-control form-control-sm d-none d-md-block" style="width:170px"
+                placeholder="Search page..." data-ar-ph="بحث في الصفحة..."><span class="sys d-none d-xl-flex"><span
+                    data-ar="النظام يعمل">System operational</span></span><small id="clk"
+                class="text-muted d-none d-lg-block"></small>
+            <div class="tw-flex tw-items-center tw-gap-2"><button class="btn btn-sm btn-outline-primary"
+                    id="btnLang">English | العربية</button>
+                <div class="dropdown"><button class="btn btn-light position-relative" data-bs-toggle="dropdown"><i
+                            class="bi bi-bell"></i><span id="bellCount"
+                            class="badge bg-danger position-absolute top-0 start-100 translate-middle d-none"></span></button>
+                    <div class="dropdown-menu dropdown-menu-end p-2" style="min-width:260px">
+                        <div id="bellList"></div><a class="dropdown-item small" href="#" id="btnReadAll"><span
+                                data-ar="تعيين الكل كمقروء">Mark all as read</span></a>
+                    </div>
+                </div>
+                <div class="dropdown"><button class="btn btn-light" data-bs-toggle="dropdown"><i
+                            class="bi bi-person-circle"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header" id="meName"></li>
+                        <li><a class="dropdown-item" href="settings.html"><span data-ar="الإعدادات">Settings</span></a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="btnLogout"><span data-ar="تسجيل الخروج">Sign
+                                    out</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <main id="view">
+            <div id="apiErr" class="alert alert-danger"><i class="bi bi-plug"></i> <span
+                    data-ar="تعذر الاتصال بالـ API على">Cannot reach the API at</span> <code id="apiUrl"></code></div>
+            <form id="settingsForm" class="row g-3" novalidate enctype="multipart/form-data">
+                <div class="col-lg-6">
+                    <div class="card p-3 h-100">
+                        <h6><span data-ar="عام">General</span></h6>
+                        <div class="mb-3"><label class="form-label"><span data-ar="اسم النظام">System
+                                    name</span></label><input id="system_name" name="system_name" type="text"
+                                class="form-control" required></div>
+                        <div class="mb-3"><label class="form-label"><span data-ar="شعار النظام">System
+                                    logo</span></label><input id="system_logo" name="system_logo" type="file"
+                                class="form-control"></div>
+                        <div class="mb-3"><label class="form-label"><span data-ar="اللغة الافتراضية">Default
+                                    language</span></label><select id="default_language" name="default_language"
+                                class="form-select" required>
+                                <option value="en">English</option>
+                                <option value="ar">العربية</option>
+                            </select></div>
+                        <div class="mb-3"><label class="form-label"><span data-ar="المنطقة الزمنية">Time
+                                    zone</span></label><select id="timezone" name="timezone" class="form-select"
+                                required>
+                                <option value="Africa/Tripoli">Africa/Tripoli (UTC+2)</option>
+                                <option value="UTC">UTC</option>
+                            </select></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card p-3 h-100">
+                        <h6><span data-ar="التحذيرات والإشعارات">Alerts & notifications</span></h6>
+                        <div class="mb-3"><label class="form-label"><span
+                                    data-ar="مدة الانتهاء الافتراضية (ساعات)">Default expiry
+                                    (hours)</span></label><input id="alert_default_expiry_hours"
+                                name="alert_default_expiry_hours" type="number" class="form-control" required min="1">
+                        </div>
+                        <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"
+                                id="push_enabled" name="push_enabled"><label for="push_enabled"><span
+                                    data-ar="الإشعارات الفورية">Push notifications</span></label></div>
+                        <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"
+                                id="sms_enabled" name="sms_enabled"><label for="sms_enabled"><span
+                                    data-ar="رسائل SMS">SMS notifications</span></label></div>
+                        <div class="mb-3"><label class="form-label"><span data-ar="مهلة الجلسة (دقيقة)">Session timeout
+                                    (min)</span></label><input id="session_timeout_min" name="session_timeout_min"
+                                type="number" class="form-control" required min="5"></div>
+                    </div>
+                </div>
+                <div class="col-12 d-flex gap-2"><button class="btn btn-danger" type="submit"><span
+                            data-ar="حفظ التغييرات">Save changes</span></button><button class="btn btn-light"
+                        type="reset"><span data-ar="إعادة تعيين">Reset</span></button></div>
+            </form>
+            <form id="pwdForm" class="mt-3" novalidate>
+                <div class="card p-3 ">
+                    <h6><span data-ar="تغيير كلمة المرور">Change password</span></h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3"><label class="form-label"><span data-ar="كلمة المرور الحالية">Current
+                                        password</span></label><input id="current_password" name="current_password"
+                                    type="password" class="form-control" required></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3"><label class="form-label"><span data-ar="كلمة المرور الجديدة">New
+                                        password</span></label><input id="new_password" name="new_password"
+                                    type="password" class="form-control" required minlength="8"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3"><label class="form-label"><span data-ar="تأكيد كلمة المرور">Confirm
+                                        password</span></label><input id="confirm_password" name="confirm_password"
+                                    type="password" class="form-control" required></div>
+                        </div>
+                    </div>
+                    <div><button class="btn btn-danger" type="submit"><span data-ar="تحديث كلمة المرور">Update
+                                password</span></button></div>
+                </div>
+            </form>
+            <div class="mt-3">
+                <div class="card pn">
+                    <div class="tb">
+                        <h6><span data-ar="نشاط تسجيل الدخول">Login activity</span></h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle table-hover">
+                            <thead id="lg_head">
+                                <tr>
+                                    <th data-sort="ip_address"><span data-ar="عنوان IP">IP address</span></th>
+                                    <th data-sort="user_agent"><span data-ar="الجهاز">Device</span></th>
+                                    <th data-sort="logged_in_at"><span data-ar="الوقت">Time</span></th>
+                                    <th data-sort="result"><span data-ar="النتيجة">Result</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lg_body"></tbody>
+                        </table>
+                    </div>
+                    <div id="lg_empty" class="text-center text-muted py-4" hidden><span data-ar="لا توجد سجلات">No
+                            records found</span></div><template id="lg_row">
+                        <tr>
+                            <td><span data-f="ip_address"></span></td>
+                            <td><span data-f="user_agent"></span></td>
+                            <td><span data-f="logged_in_at" data-fmt="date"></span></td>
+                            <td><span class="bdg" data-f="result" data-fmt="badge"></span></td>
+                        </tr>
+                    </template>
+                </div>
+            </div>
+        </main>
+    </div>
+    <template id="tplBell">
+        <div class="small p-1 border-bottom" data-f="title"></div>
+    </template>
+    <div id="toast" class="toastx" hidden></div>
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span data-ar="تأكيد الإجراء">Confirm action</span></h5><button
+                        class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmMsg"></div>
+                <div class="modal-footer"><button class="btn btn-danger" id="confirmOk"><span
+                            data-ar="تأكيد">Confirm</span></button><button class="btn btn-light"
+                        data-bs-dismiss="modal"><span data-ar="إلغاء">Cancel</span></button></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/settings.js"></script>
+</body>
+
+</html>
